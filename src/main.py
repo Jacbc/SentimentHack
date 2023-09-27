@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import openai
 
-#Proxy for API queries
+#OPENAI for API queries, need key
 openai.api_key = ""
 
 
@@ -76,11 +76,14 @@ with col4:
 
 
 
-##QUERY
+##QUERY to BARD
 
 PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}, starting from {start_date} until {end_date}"
 
+##GET CSV
 
+headlines = pd.read_csv("SMK_Corp.csv")
+st.write(headlines)
 
 
 text = ""
