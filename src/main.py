@@ -83,6 +83,8 @@ with col4:
 #August 28 - September 27
 
 ##QUERY to BARD
+PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}, starting from {start_date} until {end_date}"
+##
 
 submit = st.button("Get headlines and their sentiment", type="primary")
 
@@ -112,22 +114,24 @@ if submit:
             sentiment_score = -1
         elif "neutral" in sentiment:
             sentiment_score = 0
-
         sentiments.append(sentiment_score)
         time.sleep(0.5)
     headlines['Sentiment'] = sentiments
 
 headlines.to_csv("headlines_sentiment.csv", index=False)
 
+data = pd.read_csv("headlines_sentiment.csv")
 
+
+st.bar_chart(data)
 
 # Print the DataFrame with sentiment scores
 
 
 
-st.write(headlines.head(5))
+#st.write(headlines.head(5))
 
-PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}, starting from {start_date} until {end_date}"
+
 
 ##GET CSV
 
