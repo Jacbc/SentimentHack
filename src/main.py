@@ -7,7 +7,7 @@ import altair as alt
 import re
 
 #OPENAI for API queries, need key
-openai.api_key = "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"
+openai.api_key = ""
 
 
 ##other functions
