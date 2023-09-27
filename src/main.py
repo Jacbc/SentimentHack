@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import requests
+import openai
 
 #Proxy for API queries
-
+openai.api_key = ""
 
 
 ##other functions
@@ -28,7 +29,7 @@ if uploaded_data:
 col1, col2 = st.columns(2)
 
 with col1:
-    columns = st.multiselect("Column names", column_names)
+    columns = st.multiselect("Select columns", column_names)
     nr_columns = len(columns)
 
 
@@ -61,14 +62,37 @@ for col in columns:
 
 st.write(filtered_data)
 
-name_col = st.selectbox("Choose col with company names for analysis", filtered_data.columns)
+#name_col = st.selectbox("Choose col with company names for analysis", filtered_data.columns)
 
-for_analysis = filtered_data[name_col]
+for_analysis = filtered_data['name'].to_list()
 
-##BARD QUERY
 
-PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}"
-#st.write(PROMPT)
+col3, col4 = st.columns(2)
+with col3:
+    start_date = st.date_input("Choose a start date")
+
+with col4:
+    end_date = st.date_input("Choose an end date")
+
+
+
+##QUERY
+
+PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}, starting from {start_date} until {end_date}"
+
+
+
+
+text = ""
+response = openai.Completion.create(
+  engine="davinci",
+  prompt=f"Sentiment analysis: {text}",
+  max_tokens=1
+)
+
+
+
+
 
 
 #https://www.nbim.no/b3bb23ca-35c4-431f-930a-02607358cfae
