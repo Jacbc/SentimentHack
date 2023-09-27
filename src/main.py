@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import openai
+import time
 
 #OPENAI for API queries, need key
 openai.api_key = ""
@@ -17,6 +18,10 @@ def format_large_number(number):
         return f"{number:,}"
 
 ##visible things
+
+#NOK range: 1 000 000 - 1 100 000
+#Sector: Technology
+#Country: Japan
 
 uploaded_data = st.file_uploader("Input data", type=["csv"])
 
@@ -67,6 +72,7 @@ st.write(filtered_data)
 for_analysis = filtered_data['name'].to_list()
 
 
+
 col3, col4 = st.columns(2)
 with col3:
     start_date = st.date_input("Choose a start date")
@@ -74,16 +80,60 @@ with col3:
 with col4:
     end_date = st.date_input("Choose an end date")
 
-
+#August 28 - September 27
 
 ##QUERY to BARD
+
+submit = st.button("Get headlines and their sentiment", type="primary")
+
+sentiments = []
+
+if submit:
+    headlines = pd.read_csv("SMK_Corp.csv")
+    #st.write(headlines)
+    for row in headlines['Headline']:
+        if row.startswith(for_analysis[0]):
+            row = row[len(for_analysis[0]):].strip()
+        query = f"Analyse the sentiment of this text: {row}"
+        #st.write(query)
+        response = openai.Completion.create(
+            engine="text-davinci-002",
+            prompt=query,
+            temperature=0,
+            max_tokens=128,
+            n=1,
+            stop=None,
+            timeout=10,)
+        sentiment = response.choices[0].text.strip().replace("The sentiment of the text is ", "").rstrip('.')
+            # Map the sentiment to a numeric score
+        if "positive" in sentiment:
+            sentiment_score = 1
+        elif "negative" in sentiment:
+            sentiment_score = -1
+        elif "neutral" in sentiment:
+            sentiment_score = 0
+
+        sentiments.append(sentiment_score)
+        time.sleep(0.5)
+    headlines['Sentiment'] = sentiments
+
+headlines.to_csv("headlines_sentiment.csv", index=False)
+
+
+
+# Print the DataFrame with sentiment scores
+
+
+
+st.write(headlines.head(5))
 
 PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}, starting from {start_date} until {end_date}"
 
 ##GET CSV
 
-headlines = pd.read_csv("SMK_Corp.csv")
-st.write(headlines)
+#headlines = pd.read_csv("SMK_Corp.csv")
+#st.write(headlines)
+
 
 
 text = ""
