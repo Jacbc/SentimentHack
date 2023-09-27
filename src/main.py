@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 import openai
 import time
+import altair as alt
+import re
 
 #OPENAI for API queries, need key
 openai.api_key = ""
@@ -86,58 +88,115 @@ with col4:
 PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}, starting from {start_date} until {end_date}"
 ##
 
-submit = st.button("Get headlines and their sentiment", type="primary")
+# submit = st.button("Get headlines and their sentiment", type="primary")
 
-sentiments = []
+# sentiments = []
 
-if submit:
-    headlines = pd.read_csv("SMK_Corp.csv")
-    #st.write(headlines)
-    for row in headlines['Headline']:
-        if row.startswith(for_analysis[0]):
-            row = row[len(for_analysis[0]):].strip()
-        query = f"Analyse the sentiment of this text: {row}"
-        #st.write(query)
-        response = openai.Completion.create(
-            engine="text-davinci-002",
-            prompt=query,
-            temperature=0,
-            max_tokens=128,
-            n=1,
-            stop=None,
-            timeout=10,)
-        sentiment = response.choices[0].text.strip().replace("The sentiment of the text is ", "").rstrip('.')
-            # Map the sentiment to a numeric score
-        if "positive" in sentiment:
-            sentiment_score = 1
-        elif "negative" in sentiment:
-            sentiment_score = -1
-        elif "neutral" in sentiment:
-            sentiment_score = 0
-        sentiments.append(sentiment_score)
-        time.sleep(0.5)
-    headlines['Sentiment'] = sentiments
+# if submit:
+#     headlines = pd.read_csv("./src/SMK_Corp.csv")
+#     #st.write(headlines)
+#     for row in headlines['Headline']:
+#         if row.startswith(for_analysis[0]):
+#             row = row[len(for_analysis[0]):].strip()
+#         query = f"Analyse the sentiment of this text: {row}"
+#         #st.write(query)
+#         response = openai.Completion.create(
+#             engine="text-davinci-002",
+#             prompt=query,
+#             temperature=0,
+#             max_tokens=128,
+#             n=1,
+#             stop=None,
+#             timeout=10,)
+#         sentiment = response.choices[0].text.strip().replace("The sentiment of the text is ", "").rstrip('.')
+#             # Map the sentiment to a numeric score
+#         if "positive" in sentiment:
+#             sentiment_score = 1
+#         elif "negative" in sentiment:
+#             sentiment_score = -1
+#         elif "neutral" in sentiment:
+#             sentiment_score = 0
+#         sentiments.append(sentiment_score)
+#         time.sleep(0.5)
+#     headlines['Sentiment'] = sentiments
 
-headlines.to_csv("headlines_sentiment.csv", index=False)
-
-data = pd.read_csv("headlines_sentiment.csv")
+# headlines.to_csv("headlines_sentiment.csv", index=False)
 
 
-st.bar_chart(data)
+######################
+#submit = st.button("Get headlines and their sentiment", type="primary")
+# sentiments = []
 
-# Print the DataFrame with sentiment scores
+# if submit:
+#     headlines = pd.read_csv("./src/SMK_Corp.csv")
+#     #st.write(headlines)
+#     for row in headlines['Headline']:
+#         if row.startswith(for_analysis[0]):
+#             row = row[len(for_analysis[0]):].strip()
+#         query = f"On a scale of -10 to 10, how positive or negative is this news (e.g. negative news -4, positive news +6): {row}. Give me the score in the first sentence."
+#         #st.write(query)
+#         response = openai.Completion.create(
+#             engine="text-davinci-002",
+#             prompt=query,
+#             temperature=0,
+#             max_tokens=128,
+#             n=1,
+#             stop=None,
+#             timeout=10,)
+#         st.write(response)
+#         ed_response = response.choices[0].text[0]
+#         st.write(ed_response)
+#         #pattern = r"[-+]?\d+(\.\d+)?"
+#         #sentiment = re.findall(pattern, ed_response)
+#         #sentiment = int(ed_response[0])
+#         #sentiments.append(sentiment)
+#         time.sleep(0.5)
+#     headlines['Sentiment'] = sentiments
+
+# headlines.to_csv("headlines_sentiment.csv", index=False)
+#########################
+
+sentiment_data = pd.read_csv("headlines_sentiment.csv")
+stock_data = pd.read_csv("./src/SMK_stockprice.csv")
+
+
+stock_data['Date'] = pd.to_datetime(stock_data['time'])
+sentiment_data['Date'] = pd.to_datetime(sentiment_data['Date'])
+
+st.write(sentiment_data)
+
+start_date = pd.to_datetime(start_date)
+end_date = pd.to_datetime(end_date)
+
+stock_data = stock_data[(stock_data['Date'] >= start_date) & (stock_data['Date'] <= end_date)]
 
 
 
-#st.write(headlines.head(5))
+st.line_chart(stock_data, x='time', y='price')
 
+# Create a Streamlit app
+st.title('Price and Sentiment Analysis')
 
+# Display the price chart
+st.subheader('Price Chart')
+price_chart = alt.Chart(stock_data).mark_line().encode(
+    x='Date:T',
+    y=alt.Y('price:Q', scale=alt.Scale(domain=[stock_data['price'].min(), stock_data['price'].max()])),
+    tooltip=['date:T', 'price:Q']
+).properties(width=400, height=300)
 
-##GET CSV
+st.altair_chart(price_chart, use_container_width=True)
 
-#headlines = pd.read_csv("SMK_Corp.csv")
-#st.write(headlines)
+# Display the sentiment chart
+st.subheader('Sentiment Chart')
+sentiment_chart = alt.Chart(sentiment_data).mark_bar().encode(
+    x='Date:T',
+    y=alt.Y('Sentiment:Q', stack='zero', axis=None),
+    color=alt.Color('Sentiment:Q', scale=alt.Scale(domain=[-1, 1], range=['red', 'green'])),
+    tooltip=['Date:T', 'Sentiment:Q']
+).properties(width=400, height=300)
 
+st.altair_chart(sentiment_chart, use_container_width=True)
 
 
 
