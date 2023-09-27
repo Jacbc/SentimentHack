@@ -136,13 +136,6 @@ PROMPT = f"Can you give me a csv file with all news headlines for the companies 
 
 
 
-text = ""
-response = openai.Completion.create(
-  engine="davinci",
-  prompt=f"Sentiment analysis: {text}",
-  max_tokens=1
-)
-
 
 
 
