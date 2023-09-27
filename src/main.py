@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
-import requests as rq
-import cloudflare
+import requests
 
-#Cloudflare
-cloudflare_client = cloudflare.Cloudflare(api_token="NOPE")
+#Proxy for API queries
 
 
 
@@ -70,11 +68,7 @@ for_analysis = filtered_data[name_col]
 ##BARD QUERY
 
 PROMPT = f"Can you give me a csv file with all news headlines for the companies in the list: {for_analysis}"
-st.write(PROMPT)
-
-request = cloudflare.Request(method="GET", url="https://api.cloudflare.com/v4/zones/9888a68596424add5bd0a88dd10b1e72/bard/query?prompt=<PROMPT>")
-
-
+#st.write(PROMPT)
 
 
 #https://www.nbim.no/b3bb23ca-35c4-431f-930a-02607358cfae
